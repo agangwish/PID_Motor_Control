@@ -33,9 +33,17 @@ clean = onCleanup(@()fclose(mySerial));
 has_quit = false;
 %% BEGIN MENU LOOP
 while ~has_quit
-    fprintf('PIC32 MOTOR DRIVER INTERFACE\n\n');
+    fprintf('\n\nPIC32 MOTOR DRIVER INTERFACE\n\n');
     % display the menu options; this list will grow
-    fprintf('\td: Dummy Command\tq: Quit\n');
+    fprintf('\ta: Read current sensor (ADC Counts)    b: Read current sensor (mA)\n');
+    fprintf('\tc: Read encoder (counts)               d: Read encoder (deg)\n');
+    fprintf('\te: Reset encoder                       f: Set PWM (-100 to 100)\n');
+    fprintf('\tg: Set current gains                   h: Get current gains\n');
+    fprintf('\ti: Set position gains                  j: Get position gains\n');
+    fprintf('\tk: Test current control                l: Go to angle (deg)\n');
+    fprintf('\tm: Load step trajectory                n: Load cubic trajectory\n');
+    fprintf('\to: Execute trajectory                  p: Unpower the motor\n');
+    fprintf('\tq: Quit client                         r: Get mode\n');
     % read the user's choice
     selection = input('\nENTER COMMAND: ', 's');
     
@@ -48,14 +56,24 @@ while ~has_quit
             %% CASE D: Dummy Operation
             n = input('Enter number: ');    % get the number to send
             fprintf(mySerial, '%d\n', n);   % send the number
-            n = fscanf(mySerial, '%d');     % get the incremented number back
+            n = fscanf(mySerial, '%d');     % get the in+cremented number back
             fprintf('Read: %d\n', n);       % print it to the screen
         case 'q'
             %% CASE Q: Quit
             has_quit = true;    % exit client
+        case 'x'
+            %% CASE X: Add Two Integers
+            x = input('Enter two numbers [x y]: ');    % get numbers to send
+            fprintf(mySerial, '%d %d\n', [x(1), x(2)]);  % send numbers
+            n = fscanf(mySerial, '%d');                % get the added numbers back
+            fprintf('x + y = %d\n', n);                  % print it to the screen
         otherwise
             %% DEFAULT CASE
             fprintf('Invalid Selection %c\n', selection);
+    end
+    if ~has_quit
+        fprintf('Press any key to continue...');
+        pause;
     end
 end
 
