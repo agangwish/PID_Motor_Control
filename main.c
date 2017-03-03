@@ -4,6 +4,7 @@ PID Motor Control */
 
 #include "NU32.h"
 #include "encoder.h"
+#include "utilities.h"
 #include <stdio.h>
 // include other header files here
 
@@ -12,6 +13,7 @@ PID Motor Control */
 int main() {
   char buffer[BUF_SIZE];
   NU32_Startup();
+  set_mode(IDLE);
   NU32_LED1 = 1;  // turn off the LEDs
   NU32_LED2 = 1;
   __builtin_disable_interrupts();
@@ -42,6 +44,13 @@ int main() {
       }
       case 'q': {
         // handle q for quit. Later you may want to return to IDLE mode here
+        set_mode(IDLE);
+        break;
+      }
+      case 'r': {
+        // get mode
+        sprintf(buffer, "%d\r\n", get_mode());
+        NU32_WriteUART3(buffer);
         break;
       }
       case 'x': {
