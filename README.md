@@ -1,1 +1,1 @@
-"2-level feedback controll for DC motor using PIC microcontroller" 
+"#2-level feedback controller for DC motor using PIC microcontroller"
