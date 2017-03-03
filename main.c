@@ -25,17 +25,19 @@ int main() {
     switch(buffer[0]) {
       case 'c': {
         // Read encoder (counts)
-        sprintf(buffer, "%d", encoder_ticks());
+        sprintf(buffer, "%d\r\n", encoder_ticks());
         NU32_WriteUART3(buffer);                  // send encoder count to client
         break;
       }
       case 'd': {
-        // increment an integer and return to client
-        int n = 0;
-        NU32_ReadUART3(buffer, BUF_SIZE);
-        sscanf(buffer, "%d", &n);
-        sprintf(buffer, "%d\r\n", n + 1); // return the number + 1
+        // Read encoder (degrees)
+        sprintf(buffer, "%d\r\n", encoder_angle());
         NU32_WriteUART3(buffer);
+        break;
+      }
+      case 'e': {
+        // reset encoder count to 32,768
+        encoder_reset();
         break;
       }
       case 'q': {

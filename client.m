@@ -52,12 +52,17 @@ while ~has_quit
     
     %% SWITCH MENU
     switch selection
+        case 'c'
+            %% CASE C: Read encoder (counts)
+            n = fscanf(mySerial, '%d');                     % get the encoder counts
+            fprintf('Encoder Position: %d counts\n', n);  % print it to the screen
         case 'd'  
-            %% CASE D: Dummy Operation
-            n = input('Enter number: ');    % get the number to send
-            fprintf(mySerial, '%d\n', n);   % send the number
-            n = fscanf(mySerial, '%d');     % get the in+cremented number back
-            fprintf('Read: %d\n', n);       % print it to the screen
+            %% CASE D: Read encoder (degrees)
+            n = fscanf(mySerial, '%d');                             % get the angle in 1/10th degrees
+            fprintf('Encoder Position: %4.1f degrees\n', (n / 10));    % print it to the screen
+        case 'e'
+            %% CASE E: Reset encoder position
+            fprintf('Encoder Position Reset to 0\n');   % print message to screen
         case 'q'
             %% CASE Q: Quit
             has_quit = true;    % exit client

@@ -35,8 +35,15 @@ has_quit = false;
 while ~has_quit
     fprintf('\n\nPIC32 MOTOR DRIVER INTERFACE\n\n');
     % display the menu options; this list will grow
-    fprintf('\ta: Read current sensor (ADC Counts)\tb: Read current sensor (mA)\n');
-    fprintf('\tc: Read encoder (counts)
+    fprintf('\ta: Read current sensor (ADC Counts)    b: Read current sensor (mA)\n');
+    fprintf('\tc: Read encoder (counts)               d: Read encoder (deg)\n');
+    fprintf('\te: Reset encoder                       f: Set PWM (-100 to 100)\n');
+    fprintf('\tg: Set current gains                   h: Get current gains\n');
+    fprintf('\ti: Set position gains                  j: Get position gains\n');
+    fprintf('\tk: Test current control                l: Go to angle (deg)\n');
+    fprintf('\tm: Load step trajectory                n: Load cubic trajectory\n');
+    fprintf('\to: Execute trajectory                  p: Unpower the motor\n');
+    fprintf('\tq: Quit client                         r: Get mode\n');
     % read the user's choice
     selection = input('\nENTER COMMAND: ', 's');
     
@@ -45,12 +52,14 @@ while ~has_quit
     
     %% SWITCH MENU
     switch selection
+        case 'c'
+            %% CASE C: Read encoder (counts)
+            n = fscanf(mySerial, '%d');                     % get the encoder counts
+            fprintf('Encoder Position: %d counts\n', n);  % print it to the screen
         case 'd'  
-            %% CASE D: Dummy Operation
-            n = input('Enter number: ');    % get the number to send
-            fprintf(mySerial, '%d\n', n);   % send the number
-            n = fscanf(mySerial, '%d');     % get the in+cremented number back
-            fprintf('Read: %d\n', n);       % print it to the screen
+            %% CASE D: Read encoder (degrees)
+            n = fscanf(mySerial, '%d');     % get the angle in 1/10th degrees
+            fprintf('Encoder Position: %d degrees\n', (n / 10));       % print it to the screen
         case 'q'
             %% CASE Q: Quit
             has_quit = true;    % exit client

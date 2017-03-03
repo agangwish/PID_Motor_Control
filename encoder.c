@@ -1,4 +1,4 @@
-#include "encoder.h"                   
+#include "encoder.h"
 #include <xc.h>
 
 static int encoder_command(int read) { // send a command to the encoder chip
@@ -26,9 +26,17 @@ void encoder_init(void) {
   SPI4CONbits.MSTEN = 1;    // master mode
   SPI4CONbits.MSSEN = 1;    // slave select enable
   SPI4CONbits.MODE16 = 1;   // 16 bit mode
-  SPI4CONbits.MODE32 = 0; 
+  SPI4CONbits.MODE32 = 0;
   SPI4CONbits.SMP = 1;      // sample at the end of the clock
   SPI4CONbits.ON = 1;       // turn SPI on
 }
 
-// you write functions to reset encoder and return angle in 1/10th degrees
+void encoder_reset() {
+  // reset encoder to 32,768
+  encoder_command(0);
+}
+
+int encoder_angle() {
+  // return encoder position in 1/10th degrees (degrees * 10)
+  return 3600 * (encoder_ticks() - 32768) / (448 * 4);
+}
