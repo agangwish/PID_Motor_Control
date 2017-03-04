@@ -19,12 +19,25 @@ int main() {
   __builtin_disable_interrupts();
   // in future, intitialize modules or peripherals here
   encoder_init();
+  ADC_init();
   __builtin_enable_interrupts();
 
   while(1) {
     NU32_ReadUART3(buffer, BUF_SIZE);
     NU32_LED2 = 1;  // clear the error LED
     switch(buffer[0]) {
+      case 'a': {
+        // Read current sensor (ADC counts)
+        sprintf(buffer, "%d\r\n", get_ADC_counts());
+        NU32_WriteUART3(buffer);
+        break;
+      }
+      case 'b': {
+        // Read current sensor (milliamps)
+        sprintf(buffer, "%d\r\n", get_ADC_milliamps());
+        NU32_WriteUART3(buffer);
+        break;
+      }
       case 'c': {
         // Read encoder (counts)
         sprintf(buffer, "%d\r\n", encoder_ticks());

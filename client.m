@@ -52,6 +52,14 @@ while ~has_quit
     
     %% SWITCH MENU
     switch selection
+        case 'a'
+            %% CASE A: Read ADC (counts)
+            n = fscanf(mySerial, '%d');             % get the ADC counts
+            fprintf('ADC reading: %d counts\n', n); % print it to the screen
+        case 'b'
+            %% CASE B: Read ADC (milliamps)
+            n = fscanf(mySerial, '%d');         % get the ADC counts
+            fprintf('ADC reading: %d mA\n', n); % print it to the screen
         case 'c'
             %% CASE C: Read encoder (counts)
             n = fscanf(mySerial, '%d');                     % get the encoder counts
