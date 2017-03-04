@@ -71,9 +71,21 @@ while ~has_quit
         case 'e'
             %% CASE E: Reset encoder position
             fprintf('Encoder Position Reset to 0\n');   % print message to screen
+        case 'f'
+            %% CASE F: Set PWM between -100 and 100
+            n = input('Enter Duty Cycle between -100 and 100: ');
+            fprintf(mySerial, '%d\n', n);
+            fprintf('\nDuty Cycle set to %d\n\%', n); 
+        case 'p'
+            %% CASE P: Unpower the motor
+            fprintf('Motor powered down\n');
         case 'q'
             %% CASE Q: Quit
             has_quit = true;    % exit client
+        case 'r'
+            %% CASE R: Get mode
+            n = fscanf(mySerial, '%d');         % get the current mode
+            fprintf('Current mode: %d\n', n);   % print it to the screen
         case 'x'
             %% CASE X: Add Two Integers
             x = input('Enter two numbers [x y]: ');    % get numbers to send

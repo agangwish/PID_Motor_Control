@@ -10,6 +10,33 @@ PID Motor Control */
 
 #define BUF_SIZE 200
 
+void __ISR(_TIMER_2_VECTOR, IPL5SOFT) current_control_ISR(void) {
+  switch(get_mode()) {
+    case IDLE: {
+      OC1RS = 0; // set duty cycle to 0 (braking)
+      break;
+    }
+    case PWM : {
+      OC1RS = ((PR3 + 1) * (get_duty_cycle())) / 100;
+      LATDbits.LATD10 = get_direction();  // 0 = counterclockwise, 1 = clockwise
+      break;
+    }
+    case ITEST: {
+      break;
+    }
+    case HOLD: {
+      break;
+    }
+    case TRACK: {
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+  IFS0bits.T2IF = 0;        // clear interrupt flag
+}
+
 int main() {
   char buffer[BUF_SIZE];
   NU32_Startup();
@@ -20,6 +47,7 @@ int main() {
   // in future, intitialize modules or peripherals here
   encoder_init();
   ADC_init();
+  currentcontrol_init();
   __builtin_enable_interrupts();
 
   while(1) {
@@ -53,6 +81,27 @@ int main() {
       case 'e': {
         // reset encoder count to 32,768
         encoder_reset();
+        break;
+      }
+      case 'f': {
+        // set PWM between -100 and 100
+        int x = 0;
+        NU32_ReadUART3(buffer, BUF_SIZE);
+        sscanf(buffer, "%d", &x);
+        if (x >= 0) {
+          set_direction(0); // set counterclockwise direction
+        } else {
+          set_direction(1); // set clockwise direction
+        }
+        set_duty_cycle(abs(x));
+        set_mode(PWM);
+        break;
+      }
+      case 'p': {
+        // Unpower the moter
+        set_mode(IDLE);
+        set_duty_cycle(0);
+        set_direction(0);
         break;
       }
       case 'q': {

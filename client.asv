@@ -52,14 +52,34 @@ while ~has_quit
     
     %% SWITCH MENU
     switch selection
+        case 'a'
+            %% CASE A: Read ADC (counts)
+            n = fscanf(mySerial, '%d');             % get the ADC counts
+            fprintf('ADC reading: %d counts\n', n); % print it to the screen
+        case 'b'
+            %% CASE B: Read ADC (milliamps)
+            n = fscanf(mySerial, '%d');         % get the ADC counts
+            fprintf('ADC reading: %d mA\n', n); % print it to the screen
         case 'c'
             %% CASE C: Read encoder (counts)
             n = fscanf(mySerial, '%d');                     % get the encoder counts
             fprintf('Encoder Position: %d counts\n', n);  % print it to the screen
         case 'd'  
             %% CASE D: Read encoder (degrees)
-            n = fscanf(mySerial, '%d');     % get the angle in 1/10th degrees
-            fprintf('Encoder Position: %d degrees\n', (n / 10));       % print it to the screen
+            n = fscanf(mySerial, '%d');                             % get the angle in 1/10th degrees
+            fprintf('Encoder Position: %4.1f degrees\n', (n / 10));    % print it to the screen
+        case 'e'
+            %% CASE E: Reset encoder position
+            fprintf('Encoder Position Reset to 0\n');   % print message to screen
+        case 'f'
+            %% CASE F: Set PWM between -100 and 100
+            n = input('Enter duty cycle between -100 and 100: ');
+            fprintf(mySerial, '%d\n', n);
+            fprintf('\nDuty Cycle
+        case 'r'
+            %% CASE R: Get mode
+            n = fscanf(mySerial, '%d');         % get the current mode
+            fprintf('Current mode: %d\n', n);   % print it to the screen
         case 'q'
             %% CASE Q: Quit
             has_quit = true;    % exit client
