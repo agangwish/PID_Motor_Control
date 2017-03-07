@@ -31,7 +31,13 @@ void currentcontrol_init() {
 }
 
 void set_duty_cycle(int cycle) {
-  current_duty_cycle = cycle;
+  if (cycle > 100) {
+    current_duty_cycle = 100;
+  } else if (cycle < -100) {
+    current_duty_cycle = -100;
+  } else {
+    current_duty_cycle = cycle;
+  }
 }
 
 int get_duty_cycle() {
