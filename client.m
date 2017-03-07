@@ -75,7 +75,7 @@ while ~has_quit
             %% CASE F: Set PWM between -100 and 100
             n = input('Enter Duty Cycle between -100 and 100: ');
             fprintf(mySerial, '%d\n', n);
-            fprintf('\nDuty Cycle set to %d\n\%', n); 
+            fprintf('\nDuty Cycle set to %d\n', n); 
         case 'p'
             %% CASE P: Unpower the motor
             fprintf('Motor powered down\n');
