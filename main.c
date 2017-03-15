@@ -6,6 +6,7 @@ PID Motor Control */
 #include "encoder.h"
 #include "utilities.h"
 #include "currentcontrol.h"
+#include "positioncontrol.h"
 #include <stdio.h>
 // include other header files here
 
@@ -22,6 +23,7 @@ int main() {
   encoder_init();
   ADC_init();
   currentcontrol_init();
+  positioncontrol_init();
   encoder_reset();
   __builtin_enable_interrupts();
 
@@ -83,6 +85,22 @@ int main() {
         NU32_WriteUART3(buffer);
         break;
       }
+      case 'i': {
+        // set position gains
+        float kptemp = 0, kitemp = 0, kdtemp = 0;
+        NU32_ReadUART3(buffer, BUF_SIZE);
+        sscanf(buffer, "%f %f %f", &kptemp, &kitemp, &kdtemp);
+        set_position_gains(kptemp, kitemp, kdtemp);
+        break;
+      }
+      case 'j': {
+        // get position gains
+        float kptemp = 0, kitemp = 0, kdtemp = 0;
+        get_position_gains(&kptemp, &kitemp, &kdtemp);
+        sprintf(buffer, "%f %f %f\r\n", kptemp, kitemp, kdtemp);
+        NU32_WriteUART3(buffer);
+        break;
+      }
       case 'k': {
         // test current gains
         int i = 0;
@@ -96,6 +114,90 @@ int main() {
           NU32_WriteUART3(buffer);
         }
         break;
+      }
+      case 'l': {
+        // go to angle (degree)
+        float angle = 0;
+        NU32_ReadUART3(buffer, BUF_SIZE);
+        sscanf(buffer, "%f", &angle);
+        __builtin_disable_interrupts();
+        set_desired_angle(angle);
+        reset_position_eint();
+        __builtin_enable_interrupts();
+        if (!(get_mode() == HOLD)) {
+          set_mode(HOLD);
+        }
+        break;
+      }
+      case 'm': {
+        // load step trajectory
+        int n = 0;
+        float m = 0;
+        NU32_ReadUART3(buffer, BUF_SIZE);
+        sscanf(buffer, "%d", &n);         // first read the number of samples
+        if (n < TRAJECTORY_SIZE) {
+          __builtin_disable_interrupts();
+          set_desired_trajectory(0, (float)n);      // first value is size of trajectory
+          sprintf(buffer, "%d\r\n", n);   // send a 1 if trajectory fits in buffer
+          NU32_WriteUART3(buffer);
+          int i;
+          for (i = 1; i < n + 1; i++){
+            NU32_ReadUART3(buffer, BUF_SIZE);
+            sscanf(buffer, "%f", &m);
+            set_desired_trajectory(i, m);
+          }
+          sprintf(buffer, "%d\r\n", 1);   // send a 1 to signal finish
+          NU32_WriteUART3(buffer);
+          __builtin_enable_interrupts();
+        } else {
+          sprintf(buffer, "%d\r\n", 0);   // otherwise respond with a 0
+          NU32_WriteUART3(buffer);
+        }
+        break;
+      }
+      case 'n': {
+        // Load cubic trajectory
+        int n = 0;
+        float m = 0;
+        NU32_ReadUART3(buffer, BUF_SIZE);
+        sscanf(buffer, "%d", &n);         // first read the number of samples
+        if (n < TRAJECTORY_SIZE) {
+          __builtin_disable_interrupts();
+          set_desired_trajectory(0, (float)n);      // first value is size of trajectory
+          sprintf(buffer, "%d\r\n", n);   // send a 1 if trajectory fits in buffer
+          NU32_WriteUART3(buffer);
+          int i;
+          for (i = 1; i < n + 1; i++){
+            NU32_ReadUART3(buffer, BUF_SIZE);
+            sscanf(buffer, "%f", &m);
+            set_desired_trajectory(i, m);
+          }
+          sprintf(buffer, "%d\r\n", 1);   // send a 1 to signal finish
+          NU32_WriteUART3(buffer);
+          __builtin_enable_interrupts();
+        } else {
+          sprintf(buffer, "%d\r\n", 0);   // otherwise respond with a 0
+          NU32_WriteUART3(buffer);
+        }
+        break;
+      }
+      case 'o': {
+        // Execute trajectory
+        start_trajectory_execution();
+        set_mode(TRACK);
+        while (!trajectory_finished()) {} // wait for execution to end
+        int n = (int)get_desired_trajectory(0);
+        sprintf(buffer, "%d\r\n", n);
+        NU32_WriteUART3(buffer);
+        __builtin_disable_interrupts();
+        int i;
+        for (i = 1; i < n + 1; i++) {
+          sprintf(buffer, "%f %f\r\n", get_desired_trajectory(i), get_actual_trajectory(i));
+          NU32_WriteUART3(buffer);
+        }
+        __builtin_enable_interrupts();
+        set_mode(HOLD);
+         break;
       }
       case 'p': {
         // Unpower the moter

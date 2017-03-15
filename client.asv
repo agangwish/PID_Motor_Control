@@ -24,7 +24,7 @@ fprintf('Opening port %s....\n', port);
 
 % Serial Port Settings
 mySerial = serial(port, 'BaudRate', 230400, 'FlowControl',...
-    'hardware', 'Timeout', 20);
+    'hardware', 'Timeout', 120);
 % Opens serial connection
 fopen(mySerial);    
 % closes serial port when function exits
@@ -92,8 +92,7 @@ while ~has_quit
             fprintf('Position gains set\n');
         case 'j'
             %% CASE J: Get position gains
-            n = fscanf(mySerial, '%f %f %f');
-            fprintf('Position Gains:\n\tKp: %f\n\tKi: %f\n\tKd: %f\n', [n(1), n(2), n(3)]);
+            n = fscanf(mySerial, '%f %f %f
         case 'k'
             %% CASE K: Test Current Gains
             nsamples = fscanf(mySerial, '%d');              % get the number of samples
@@ -115,69 +114,6 @@ while ~has_quit
             title(sprintf('Average error: %5.1f mA\n', score));
             ylabel('Current (mA)');
             xlabel('Time (ms)');
-        case 'l' 
-            %% CASE L: Go to angle (degrees)
-            n = input('Enter Desired Angle (degrees): ');
-            fprintf(mySerial, '%f\n', n);
-            fprintf('Angle Set\n');
-        case 'm'
-            %% CASE M: Load step trajectory
-            n = input('Enter Desired Trajectory\n[t1,p1;...;tn,pn]: ');
-            ref = genRef(n, 'step');
-            ref_size = size(ref, 2);
-            fprintf(mySerial, '%d\n', ref_size);
-            fprintf('Array size: %d\n', ref_size);
-            n = fscanf(mySerial, '%d');
-            if n
-                fprintf('Sending Array...\n');
-                for i = 1:ref_size
-                   fprintf(mySerial, '%f\n', ref(i)); 
-                end
-                done = fscanf(mySerial, '%d');
-                if done
-                    fprintf('Finished sending trajectory\n');
-                end
-            else
-                fprintf('ARRAY TOO BIG');
-            end
-        case 'n'
-            %% CASE N: Load cubic trajectory
-            n = input('Enter Desired Trajectory\n[t1,p1;...;tn,pn]: ');
-            ref = genRef(n, 'cubic');
-            ref_size = size(ref, 2);
-            fprintf(mySerial, '%d\n', ref_size);
-            fprintf('Array size: %d\n', ref_size);
-            n = fscanf(mySerial, '%d');
-            if n
-                fprintf('Sending Array...\n');
-                for i = 1:ref_size
-                   fprintf(mySerial, '%f\n', ref(i)); 
-                end
-                done = fscanf(mySerial, '%d');
-                if done
-                    fprintf('Finished sending trajectory\n');
-                end
-            else
-                fprintf('ARRAY TOO BIG');
-            end
-        case 'o'
-            %% CASE O: Execute trajectory
-            fprintf('Executing trajectory...\n');
-            nsamples = fscanf(mySerial, '%d');              % get the number of samples
-            data = zeros(nsamples, 2);                      % two values per sample: ref and actual
-            for i = 1:nsamples
-                data(i, :) = fscanf(mySerial, '%f %f');     % read in data from PIC32, assume floats in degrees
-                times(i) = (i - 1) * 0.005;                 % 0.005 s between samples
-            end
-            if nsamples > 1
-                figure;
-                stairs(times, data(:, 1:2));                % plot the reference and actual
-            else
-                fprintf('Only 1 sample received\n');
-                disp(data);
-            end
-            ylabel('Angle (degrees)');
-            xlabel('Time (s)');
         case 'p'
             %% CASE P: Unpower the motor
             fprintf('Motor powered down\n');

@@ -9,12 +9,14 @@
 static volatile float current_duty_cycle = 0; // range 0 - 100;
 static volatile int current_direction = 0;  // 0 = counterclockwise, 1 = clockwise
 static volatile float Ki = 0, Kp = 0;
-static volatile int eint = 0;
+static volatile float eint = 0;
 static volatile int square_wave_counter = 0;
 static volatile int reference_current = 200;
 static volatile int reference_array[PLOTPTS];
 static volatile int sensor_array[PLOTPTS];
 static volatile int test_is_finished = 0;
+static volatile int demanded_current = 0;
+static volatile float eintmax = 100;
 
 void currentcontrol_init() {
   /* Initialize Timer 2 Interrupt */
@@ -102,9 +104,17 @@ void __ISR(_TIMER_2_VECTOR, IPL5SOFT) current_control_ISR(void) {
       break;
     }
     case HOLD: {
+      int sensed_current = get_ADC_milliamps();
+      current_PI_controller(sensed_current, demanded_current);
+      OC1RS = ((PR3 + 1) * (get_duty_cycle())) / 100;
+      LATDbits.LATD10 = get_direction();
       break;
     }
     case TRACK: {
+      int sensed_current = get_ADC_milliamps();
+      current_PI_controller(sensed_current, demanded_current);
+      OC1RS = ((PR3 + 1) * (get_duty_cycle())) / 100;
+      LATDbits.LATD10 = get_direction();
       break;
     }
     default: {
@@ -118,6 +128,7 @@ void set_current_gains(float kp, float ki) {
   __builtin_disable_interrupts();
   Kp = kp;
   Ki = ki;
+  eintmax = 100 / Ki;
   __builtin_enable_interrupts();
 }
 void get_current_gains(float *kp, float *ki) {
@@ -125,9 +136,22 @@ void get_current_gains(float *kp, float *ki) {
   *ki = Ki;
 }
 
+void set_demanded_current(int current) {
+  demanded_current = current;
+}
+
+int get_demanded_current() {
+  return demanded_current;
+}
+
 void current_PI_controller(int sensor_val, int reference_val) {
   float e = reference_val - sensor_val;
   eint = eint + e;
+  if (eint > eintmax) {
+    eint = eintmax;
+  } else if (eint < -eintmax) {
+    eint = -eintmax;
+  }
   float u = Kp * e + Ki * eint;
   set_duty_cycle(u);
 }
