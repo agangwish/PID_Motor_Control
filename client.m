@@ -76,6 +76,36 @@ while ~has_quit
             n = input('Enter Duty Cycle between -100 and 100: ');
             fprintf(mySerial, '%d\n', n);
             fprintf('\nDuty Cycle set to %d\n', n); 
+        case 'g'
+            %% CASE G: Set current gains
+            n = input('Enter Current Gains [Kp, Ki]: ');
+            fprintf(mySerial, '%f %f\n', [n(1), n(2)]);
+            fprintf('Current gains set\n');
+        case 'h'
+            %% CASE H: Get current gains
+            n = fscanf(mySerial, '%f %f');
+            fprintf('Current Gains:\n\tKp: %f Ki: %f\n', [n(1), n(2)]);
+        case 'k'
+            %% CASE K: Test Current Gains
+            nsamples = fscanf(mySerial, '%d');              % get the number of samples
+            data = zeros(nsamples, 2);                      % two values per sample: ref and actual
+            for i = 1:nsamples
+                data(i, :) = fscanf(mySerial, '%d %d');     % read in data from PIC32, assume ints in mA
+                times(i) = (i - 1) * 0.2;                   % 0.2 ms between samples
+            end
+            if nsamples > 1
+                figure;
+                stairs(times, data(:, 1:2));                % plot the reference and actual
+            else
+                fprintf('Only 1 sample received\n');
+                disp(data);
+            end
+            % compute the average error
+            score = mean(abs(data(:, 1) - data(:, 2)));
+            fprintf('\nAverage error: %5.1f mA\n', score);
+            title(sprintf('Average error: %5.1f mA\n', score));
+            ylabel('Current (mA)');
+            xlabel('Time (ms)');
         case 'p'
             %% CASE P: Unpower the motor
             fprintf('Motor powered down\n');
@@ -95,10 +125,6 @@ while ~has_quit
         otherwise
             %% DEFAULT CASE
             fprintf('Invalid Selection %c\n', selection);
-    end
-    if ~has_quit
-        fprintf('Press any key to continue...');
-        pause;
     end
 end
 

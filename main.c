@@ -5,37 +5,11 @@ PID Motor Control */
 #include "NU32.h"
 #include "encoder.h"
 #include "utilities.h"
+#include "currentcontrol.h"
 #include <stdio.h>
 // include other header files here
 
 #define BUF_SIZE 200
-
-void __ISR(_TIMER_2_VECTOR, IPL5SOFT) current_control_ISR(void) {
-  switch(get_mode()) {
-    case IDLE: {
-      OC1RS = 0; // set duty cycle to 0 (braking)
-      break;
-    }
-    case PWM : {
-      OC1RS = ((PR3 + 1) * (get_duty_cycle())) / 100;
-      LATDbits.LATD10 = get_direction();  // 0 = counterclockwise, 1 = clockwise
-      break;
-    }
-    case ITEST: {
-      break;
-    }
-    case HOLD: {
-      break;
-    }
-    case TRACK: {
-      break;
-    }
-    default: {
-      break;
-    }
-  }
-  IFS0bits.T2IF = 0;        // clear interrupt flag
-}
 
 int main() {
   char buffer[BUF_SIZE];
@@ -48,6 +22,7 @@ int main() {
   encoder_init();
   ADC_init();
   currentcontrol_init();
+  encoder_reset();
   __builtin_enable_interrupts();
 
   while(1) {
@@ -88,13 +63,38 @@ int main() {
         int x = 0;
         NU32_ReadUART3(buffer, BUF_SIZE);
         sscanf(buffer, "%d", &x);
-        if (x >= 0) {
-          set_direction(0); // set counterclockwise direction
-        } else {
-          set_direction(1); // set clockwise direction
-        }
-        set_duty_cycle(abs(x));
+        set_duty_cycle(x);
         set_mode(PWM);
+        break;
+      }
+      case 'g': {
+        // set current gains
+        float kptemp = 0, kitemp = 0;
+        NU32_ReadUART3(buffer, BUF_SIZE);
+        sscanf(buffer, "%f %f", &kptemp, &kitemp);
+        set_current_gains(kptemp, kitemp);
+        break;
+      }
+      case 'h': {
+        // get current gains
+        float kptemp = 0, kitemp = 0;
+        get_current_gains(&kptemp, &kitemp);
+        sprintf(buffer, "%f %f\r\n", kptemp, kitemp);
+        NU32_WriteUART3(buffer);
+        break;
+      }
+      case 'k': {
+        // test current gains
+        int i = 0;
+        start_test();
+        while (!test_finished()) {} // wait for test to finish
+
+        sprintf(buffer, "%d\r\n", PLOTPTS);
+        NU32_WriteUART3(buffer);
+        for (i = 0; i < PLOTPTS; i++) {
+          sprintf(buffer, "%d %d\r\n", get_reference_array(i), get_sensor_array(i));
+          NU32_WriteUART3(buffer);
+        }
         break;
       }
       case 'p': {

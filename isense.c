@@ -10,6 +10,14 @@ void ADC_init() {
 }
 
 unsigned int get_ADC_counts() {
+  int i, avg = 0;
+  for (i = 0; i < 5; i++) {
+    avg = avg + get_ADC_counts_helper();
+  }
+  return avg / 5;
+}
+
+unsigned int get_ADC_counts_helper() {
   // return the ADC reading at B0 in counts
   unsigned int elapsed = 0, finish_time = 0;
   AD1CHSbits.CH0SA = 0;   // sample B0
