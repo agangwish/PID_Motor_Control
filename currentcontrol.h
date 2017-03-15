@@ -3,7 +3,7 @@
 
 #define PLOTPTS 100
 void currentcontrol_init();
-void set_duty_cycle(int cycle);
+void set_duty_cycle(float cycle);
 int get_duty_cycle();
 void set_direction(int dir);
 int get_direction();

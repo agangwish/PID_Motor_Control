@@ -6,7 +6,7 @@
 #include "LCD.h"
 #include <stdio.h>
 
-static volatile int current_duty_cycle = 0; // range 0 - 100;
+static volatile float current_duty_cycle = 0; // range 0 - 100;
 static volatile int current_direction = 0;  // 0 = counterclockwise, 1 = clockwise
 static volatile float Ki = 0, Kp = 0;
 static volatile int eint = 0;
@@ -42,7 +42,7 @@ void currentcontrol_init() {
   LATDbits.LATD10 = 0;    // initialize output to low
 }
 
-void set_duty_cycle(int cycle) {
+void set_duty_cycle(float cycle) {
   if (cycle > 100) {
     current_duty_cycle = 100;
   } else if (cycle < -100) {
@@ -129,7 +129,7 @@ void current_PI_controller(int sensor_val, int reference_val) {
   float e = reference_val - sensor_val;
   eint = eint + e;
   float u = Kp * e + Ki * eint;
-  set_duty_cycle((int)u);
+  set_duty_cycle(u);
 }
 
 int test_finished() {
